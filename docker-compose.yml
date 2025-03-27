@@ -4,8 +4,10 @@ services:
     build: ./apps/my-kotlin-app
     ports:
       - 8080:8080
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel:4318  # 关键！使用服务名
     volumes:
-      - maven:/root/.m2
+      - ~/.m2:/root/.m2
     networks:
       - observability
 

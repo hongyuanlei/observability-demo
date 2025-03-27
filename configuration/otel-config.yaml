@@ -80,9 +80,11 @@ service:
       address: 127.0.0.1:12345
   pipelines:
 #    traces:
-#      receivers: [otlp]
-#      processors: [batch]
-#      exporters: [otlp]
+#      receivers:
+#      - otlp
+#      processors:
+#      - batch
+#      exporters: [debug, otlphttp]  # 需要添加对应的exporter
     logs:
       receivers:
       - syslog
@@ -100,3 +102,12 @@ service:
       exporters:
       - debug
       - prometheusremotewrite
+    metrics/otlp:
+      receivers:
+        - otlp
+      processors:
+        - attributes/metrics
+        - attributes/otlp
+      exporters:
+        - debug
+        - prometheusremotewrite
