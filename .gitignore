@@ -1,2 +1,3 @@
 apps/my-kotlin-app/target/
 .idea/
+.env

@@ -17,8 +17,28 @@ services:
       - 9090:9090
     volumes:
       - ./configuration/prometheus.yaml:/prometheus/prometheus.yml:ro
+      - ./configuration/alert_rules.yml:/etc/prometheus/alert_rules.yml
     command:
       - --web.enable-remote-write-receiver
+    networks:
+      - observability
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    volumes:
+      - ./configuration/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - ./alertmanager-entrypoint.sh:/entrypoint.sh
+    entrypoint: [ "/bin/sh", "/entrypoint.sh" ]
+    ports:
+      - 9093:9093
+    # .env file content
+    # ALERTMANAGER_TO_EMAIL=xxx
+    # ALERTMANAGER_AUTH_USERNAME=xxx
+    # ALERTMANAGER_AUTH_PASSWORD=xxx
+    env_file:
+      - .env
     networks:
       - observability
 

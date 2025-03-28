@@ -1,0 +1,16 @@
+groups:
+  - name: JVM_Memory_Alerts
+    rules:
+      - alert: JVM_Memory_Critical
+        expr: |
+          (
+            sum by(instance, job) (jvm_memory_used_bytes{area="heap"}) 
+            / 
+            sum by(instance, job) (jvm_memory_max_bytes{area="heap"})
+          ) * 100 > 2
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "JVM Memory Critically High on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} is using over 2% of its heap memory for more than 2 minutes! Immediate action required."
