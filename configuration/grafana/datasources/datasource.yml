@@ -12,3 +12,13 @@ datasources:
     access: proxy
     url: http://prom:9090
     isDefault: false
+  - name: Tempo
+    type: tempo
+    access: proxy
+    url: http://tempo:3200
+    jsonData:
+      httpMethod: GET
+      tracesToLogs:
+        datasourceUid: loki
+      serviceMap:
+        datasourceUid: tempo

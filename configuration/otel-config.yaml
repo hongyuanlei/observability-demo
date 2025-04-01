@@ -5,10 +5,6 @@ receivers:
         endpoint: 0.0.0.0:4317
       http:
         endpoint: 0.0.0.0:4318
-#  syslog:
-#    tcp:
-#      listen_address: 0.0.0.0:54527
-#    protocol: rfc5424
   prometheus:
     config:
       scrape_configs:
@@ -52,6 +48,8 @@ exporters:
     verbosity: normal
   otlphttp/logs:
     endpoint: http://loki:3100/otlp
+  otlphttp/trace:
+    endpoint: tempo:4417       # Endpoint for Tempo to send traces
   prometheusremotewrite:
     endpoint: http://prom:9090/api/v1/write
     tls:
@@ -60,37 +58,22 @@ exporters:
 extensions:
   health_check:
     endpoint: 0.0.0.0:13133
-#  file_storage/queue:
-#    directory: "/file_storage"
-#    create_directory: true  # ✅ 允许自动创建目录
-#    timeout: 1h
-#  pprof:
-#  zpages:
 
 service:
   extensions:
   - health_check
-#  - file_storage/queue
-#  - pprof
-#  - zpages
   telemetry:
     metrics:
       address: 127.0.0.1:12345
   pipelines:
-#    traces:
-#      receivers:
-#      - otlp
+    traces/oltp:
+      receivers:
+      - otlp
 #      processors:
 #      - batch
-#      exporters: [debug, otlphttp]  # 需要添加对应的exporter
-#    logs:
-#      receivers:
-#      - filelog
-#      processors:
-#      - attributes/logs
-#      exporters:
-#      - debug
-#      - otlphttp/logs
+      exporters:
+      - debug
+      - otlphttp/trace
     metrics/prometheus:
       receivers:
       - prometheus
@@ -112,6 +95,8 @@ service:
     logs/oltp:
       receivers:
         - otlp
+      processors:
+        - attributes/logs
       exporters:
         - debug
         - otlphttp/logs

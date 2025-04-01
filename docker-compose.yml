@@ -51,6 +51,18 @@ services:
     networks:
       - observability
 
+  tempo:
+    image: grafana/tempo:2.7.2
+    ports:
+      - 3200:3200  # Tempo Query Port
+      - 4417:4317  # OTLP gRPC
+      - 4418:4318  # OTLP HTTP
+    command: [ "-config.file=/etc/tempo.yaml" ]
+    volumes:
+      - ./configuration/tempo.yaml:/etc/tempo.yaml
+    networks:
+      - observability
+
   otel:
     image: otel/opentelemetry-collector-contrib:latest
     volumes:
