@@ -1,5 +1,6 @@
 package com.example
 
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PathVariable
@@ -18,6 +19,11 @@ class PersonController {
         produces = ["application/json"]
     )
     fun person(@PathVariable("id") id: String): ResponseEntity<Person> {
+        LOG.info("Retrieving person information for id: $id")
         return ResponseEntity(Person(id, "Hello $id"), HttpStatus.OK)
+    }
+
+    companion object {
+        private val LOG = LoggerFactory.getLogger(PersonController::class.java)
     }
 }

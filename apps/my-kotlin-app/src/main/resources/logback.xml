@@ -1,0 +1,6 @@
+<configuration>
+    <appender name="OTEL" class="io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender"/>
+    <root level="info">
+        <appender-ref ref="OTEL"/>
+    </root>
+</configuration>
