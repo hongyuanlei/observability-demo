@@ -12,9 +12,9 @@ class MetricsConfig {
     fun openTelemetry(): OpenTelemetry = GlobalOpenTelemetry.get()
 
     @Bean
-    fun personHelloCounter(openTelemetry: OpenTelemetry): LongCounter  =
-        openTelemetry.getMeter("person-hello")
-            .counterBuilder("person_hello_count")
+    fun personGetCounter(openTelemetry: OpenTelemetry): LongCounter  =
+        openTelemetry.getMeter("person-meter")
+            .counterBuilder("person_get_count")
             .setUnit("total")
             .build()
 }

@@ -15,7 +15,7 @@ data class Person(val id: String, val name: String)
 @RestController
 @RequestMapping("/api/v1/person")
 class PersonController(
-    private val personHelloCounter: LongCounter
+    private val personGetCounter: LongCounter
 ) {
 
     @RequestMapping(
@@ -23,15 +23,19 @@ class PersonController(
         value = ["/{id}"],
         produces = ["application/json"]
     )
-    fun person(@PathVariable("id") id: String): ResponseEntity<Person> {
+    fun getPerson(@PathVariable("id") id: String): ResponseEntity<Person> {
         LOG.info("Retrieving person information for id: $id")
-        personHelloCounter.add(
+        val person = Person(id, "Hello $id")
+
+        // Adding OTEL custom metrics
+        personGetCounter.add(
             1, Attributes.of(
-                AttributeKey.stringKey("id"), id,
-                AttributeKey.stringKey("name"), "hello $id"
+                AttributeKey.stringKey("id"), person.id,
+                AttributeKey.stringKey("name"), person.name
             )
         )
-        return ResponseEntity(Person(id, "Hello $id"), HttpStatus.OK)
+
+        return ResponseEntity(person, HttpStatus.OK)
     }
 
     companion object {

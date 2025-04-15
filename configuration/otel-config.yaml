@@ -49,7 +49,7 @@ exporters:
   otlphttp/logs:
     endpoint: http://loki:3100/otlp
   otlphttp/trace:
-    endpoint: tempo:4417       # Endpoint for Tempo to send traces
+    endpoint: http://tempo:4418       # Endpoint for Tempo to send traces
   prometheusremotewrite:
     endpoint: http://prom:9090/api/v1/write
     tls:
