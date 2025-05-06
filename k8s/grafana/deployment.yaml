@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: grafana
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: grafana-datasource-config-volume
+              mountPath: /etc/grafana/provisioning/datasources/datasource.yml
+              subPath: datasource.yml
+              readOnly: true
+#            - name: grafana-dashboard-config-volume
+#              mountPath: /etc/grafana/provisioning/dashboards   # 👈 要挂载到 config.yaml 所在的目录
+#              readOnly: true
+      volumes:
+        - name: grafana-datasource-config-volume
+          configMap:
+            name: grafana-datasource-config
+#        - name: grafana-dashboard-config-volume
+#          configMap:
+#            name: grafana-dashboard-config

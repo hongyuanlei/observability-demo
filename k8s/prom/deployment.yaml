@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prom
+  namespace: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prom
+  template:
+    metadata:
+      labels:
+        app: prom
+    spec:
+      containers:
+        - name: prom
+          image: prom/prometheus:v2.46.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9090
+          args:
+            - "--config.file=/prometheus/prometheus.yml"
+            - "--web.enable-remote-write-receiver"
+          volumeMounts:
+            - name: prometheus-config-volume
+              mountPath: /prometheus    # 挂 prometheus 配置
+              readOnly: true
+            - name: alert-rules-config-volume
+              mountPath: /etc/prometheus  # 挂 alert 规则
+              readOnly: true
+            - name: prometheus-data
+              mountPath: /prometheus/data  # 🔥 挂载 data 目录
+      volumes:
+        - name: prometheus-config-volume
+          configMap:
+            name: prometheus-config
+        - name: alert-rules-config-volume
+          configMap:
+            name: alert-rules-config
+        - name: prometheus-data
+          emptyDir: { }   # 🧹 临时的空目录，Pod销毁时也一起清空
+

@@ -1,0 +1,109 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-config
+  namespace: observability
+data:
+  config.yaml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: my-kotlin-app-otel-collector
+              metrics_path: /actuator/prometheus
+              scrape_interval: 10s
+              static_configs:
+                - targets:
+                  - my-kotlin-app:8080
+                  labels:
+                    app: my-kotlin-app
+                    team: team1
+
+    processors:
+      attributes/logs:
+        actions:
+          - key: new_label
+            value: otel
+            action: insert
+          - key: loki.attribute.labels
+            value: appname, hostname, new_label
+            action: insert
+      attributes/metrics:
+        actions:
+          - key: origin
+            value: otel
+            action: insert
+      attributes/prometheus:
+        actions:
+          - key: metrics_collector
+            value: prometheus
+            action: insert
+      attributes/otlp:
+        actions:
+          - key: metrics_collector
+            value: otlp
+            action: insert
+
+    exporters:
+      debug:
+        verbosity: normal
+      otlphttp/logs:
+        endpoint: http://loki:3100/otlp
+      otlphttp/trace:
+        endpoint: http://tempo:4318       # Endpoint for Tempo to send traces
+      prometheusremotewrite:
+        endpoint: http://prom:9090/api/v1/write
+        tls:
+          insecure: true
+
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+
+    service:
+      extensions:
+      - health_check
+      telemetry:
+        metrics:
+          address: 127.0.0.1:12345
+      pipelines:
+        traces/oltp:
+          receivers:
+          - otlp
+    #      processors:
+    #      - batch
+          exporters:
+          - debug
+          - otlphttp/trace
+        metrics/prometheus:
+          receivers:
+          - prometheus
+          processors:
+          - attributes/metrics
+          - attributes/prometheus
+          exporters:
+          - debug
+          - prometheusremotewrite
+        metrics/otlp:
+          receivers:
+            - otlp
+          processors:
+            - attributes/metrics
+            - attributes/otlp
+          exporters:
+            - debug
+            - prometheusremotewrite
+        logs/oltp:
+          receivers:
+            - otlp
+          processors:
+            - attributes/logs
+          exporters:
+            - debug
+            - otlphttp/logs

@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-kotlin-app
+  namespace: demo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: my-kotlin-app
+  template:
+    metadata:
+      labels:
+        app: my-kotlin-app
+    spec:
+      containers:
+        - name: my-kotlin-app
+          image: my-kotlin-app:${IMAGE_TAG}
+          imagePullPolicy: Never
+          ports:
+            - containerPort: 8080
+          env:
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://otel.observability.svc.cluster.local:4318

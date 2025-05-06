@@ -1,0 +1,46 @@
+#!/bin/bash
+
+if minikube status | grep -q "host: Running"; then
+  echo "Minikube is already running."
+else
+  echo "Minikube is not running. Starting it now..."
+  minikube start
+fi
+eval $(minikube docker-env)
+
+export IMAGE_TAG=1.0.1
+export IMAGE_NAME=my-kotlin-app
+if [[ "$(docker images -q ${IMAGE_NAME}:${IMAGE_TAG} 2> /dev/null)" == "" ]]; then
+  echo "Image not found. Building..."
+  docker build -t ${IMAGE_NAME}:${IMAGE_TAG} apps/my-kotlin-app
+else
+  echo "Image ${IMAGE_NAME}:${IMAGE_TAG} already exists. Skipping build."
+fi
+
+kubectl apply -f k8s/namespaces.yaml
+
+kubectl apply -f k8s/alertmanager/deployment.yaml
+kubectl apply -f k8s/alertmanager/service.yaml
+
+kubectl apply -f k8s/prom/configmap-prometheus.yaml
+kubectl apply -f k8s/prom/configmap-alert-rules.yaml
+kubectl apply -f k8s/prom/deployment.yaml
+kubectl apply -f k8s/prom/service.yaml
+
+kubectl apply -f k8s/loki/deployment.yaml
+kubectl apply -f k8s/loki/service.yaml
+
+kubectl apply -f k8s/tempo/configmap.yaml
+kubectl apply -f k8s/tempo/deployment.yaml
+kubectl apply -f k8s/tempo/service.yaml
+
+kubectl apply -f k8s/otel/configmap.yaml
+kubectl apply -f k8s/otel/deployment.yaml
+kubectl apply -f k8s/otel/service.yaml
+
+kubectl apply -f k8s/grafana/configmap.yaml
+kubectl apply -f k8s/grafana/deployment.yaml
+kubectl apply -f k8s/grafana/service.yaml
+
+envsubst < k8s/my-kotlin-app/deployment.yaml | kubectl apply -f -
+kubectl apply -f k8s/my-kotlin-app/service.yaml
